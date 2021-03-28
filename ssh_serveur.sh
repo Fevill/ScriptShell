@@ -46,15 +46,15 @@ NEW_ALLOWUSERS=$(echo "AllowUsers          $USERNAME          ")
 	
 	cp  $SSHD_CONFIG_PATH_TMP $SSHD_CONFIG_PATH
 
-	cat $SSHD_CONFIG_PATH
+	
 	
 	# Autorisation de la connetion ssh de l'utilisateur `username`
 	FIND_ALLOWUSERS=$(cat $SSHD_CONFIG_PATH | grep AllowUsers | wc -l)
 	FIND_USER=$(cat $SSHD_CONFIG_PATH | grep AllowUsers | grep $USERNAME | wc -l)
-	echo "$FIND_ALLOWUSERS"
+
 	
         # Recherche de la ligne contenant le mot clé `AllowUsers`
-	if [ -z "$FIND_USER" ]; then
+	if [ "$FIND_USER" = 0 ]; then
 		if [ "$FIND_ALLOWUSERS" = 0 ]; then
 		
 			echo "$NEW_ALLOWUSERS" >> "$SSHD_CONFIG_PATH"	
@@ -64,6 +64,7 @@ NEW_ALLOWUSERS=$(echo "AllowUsers          $USERNAME          ")
 				> $SSHD_CONFIG_PATH_TMP
 
 			cp  $SSHD_CONFIG_PATH_TMP $SSHD_CONFIG_PATH
+			rm $SSHD_CONFIG_PATH_TMP
 		else
 
 			echo "AllowUsers apparais sur plusieur ligne "
@@ -76,10 +77,7 @@ NEW_ALLOWUSERS=$(echo "AllowUsers          $USERNAME          ")
 		echo "La configuration de l'utilisateur $USERNAME"
 		echo "dans le fichier sshd_config exite déjà."
 	fi
-	
-	#Nettoyage du fichier temporair
-	rm $SSHD_CONFIG_PATH_TMP
-	exit 0
+
 }
 
 # verifaction de systeme
@@ -137,7 +135,10 @@ USERNAME=$PARAM_2
 	echo ""
 	echo "*****************************"
 	echo "Configure de ssh"
-	ss_sshd_config	
+	ss_sshd_config
+
+	echo ""
+	echo "Script : SUCCESS"	
 	exit 0
 else
 	echo "Nombre de parametre insuffisant"
