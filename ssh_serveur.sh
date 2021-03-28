@@ -11,7 +11,8 @@
 USERNAME=""
 SYSTEMNAME=""
 SSHD_CONFIG_PATH="/etc/ssh/sshd_config"
-SSHD_CONFIG_PATH_SAVE="/etc/ssh/sshd_config.save"
+SSHD_CONFIG_PATH_SAVE="/etc/ssh/sshd_config_"
+SSHD_CONFIG_PATH_TMP="/etc/ssh/sshd_config_tmp"
 PARAM_1=$1
 PARAM_2=$2
 set -u
@@ -33,27 +34,52 @@ ss_help(){
 # Configuration de sshd_config
 ss_sshd_config(){
 FIND_ALLOWUSERS=""
-NEW_ALLOWUSERS=$(echo "AllowUsers	$USERNAME	")
+FIND_USER=""
+NEW_ALLOWUSERS=$(echo "AllowUsers          $USERNAME          ")
 	
-	echo $FIND_ALLOWUSERS
-	echo $NEW_ALLOWUSERS
-	echo $SSHD_CONFIG_PATH
+	# Sauvegarde de la configuration
+	cp $SSHD_CONFIG_PATH $SSHD_CONFIG_PATH_SAVE
+	
 	# Retrai des drois de connexion de l'utilisateur root
-	cat $SSHD_CONFIG_PATH > $SSHD_CONFIG_PATH_SAVE
-
-	cat $SSHD_CONFIG_PATH | sed  "s.#PermitRoot.PermitRoot." > $SSHD_CONFIG_PATH
 	
+	cat $SSHD_CONFIG_PATH | sed  "s.#PermitRoot.PermitRoot." > $SSHD_CONFIG_PATH_TMP
+	
+	cp  $SSHD_CONFIG_PATH_TMP $SSHD_CONFIG_PATH
+
 	cat $SSHD_CONFIG_PATH
 	
 	# Autorisation de la connetion ssh de l'utilisateur `username`
-	#FIND_ALLOWDS_USERS=$(cat /etc/ssh/sshd_config_tmp | grep lar | wc -l)
-	#echo $FIND_ALLOWUSERS
-	#if [ $FIND_ALLOWUSERS = 0 ]; then
-	#	$NEW_ALLOWUSERS >> $SSHD_CONFIG_PATH	
-	#elif [ $FIND_ALLOWUSERS = 1 ]; then		
-	#cat $SSHD_CONFIG_PATH | sed  ".AllowUsers.s.AllowUsers.$NEW_ALLOWUSERS." \
-	#	>> $SSHD_CONFIG_PATH
-	#fi
+	FIND_ALLOWUSERS=$(cat $SSHD_CONFIG_PATH | grep AllowUsers | wc -l)
+	FIND_USER=$(cat $SSHD_CONFIG_PATH | grep AllowUsers | grep $USERNAME | wc -l)
+	echo "$FIND_ALLOWUSERS"
+	
+        # Recherche de la ligne contenant le mot clé `AllowUsers`
+	if [ -z "$FIND_USER" ]; then
+		if [ "$FIND_ALLOWUSERS" = 0 ]; then
+		
+			echo "$NEW_ALLOWUSERS" >> "$SSHD_CONFIG_PATH"	
+
+		elif [ "$FIND_ALLOWUSERS" = 1 ]; then		
+			cat $SSHD_CONFIG_PATH | sed  "s.AllowUsers.$NEW_ALLOWUSERS." \
+				> $SSHD_CONFIG_PATH_TMP
+
+			cp  $SSHD_CONFIG_PATH_TMP $SSHD_CONFIG_PATH
+		else
+
+			echo "AllowUsers apparais sur plusieur ligne "
+			echo "Vérifier votre fichier \`/etc/ssh/sshd_config\`"
+			echo "Rétier ou commenter les lignes contenant \`AllowUsers\`"
+			mv $SSHD_CONFIG_PATH_SAVE $SSHD_CONFIG_PATH
+			exit 1
+		fi
+	else
+		echo "La configuration de l'utilisateur $USERNAME"
+		echo "dans le fichier sshd_config exite déjà."
+	fi
+	
+	#Nettoyage du fichier temporair
+	rm $SSHD_CONFIG_PATH_TMP
+	exit 0
 }
 
 # verifaction de systeme
