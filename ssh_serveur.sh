@@ -118,7 +118,10 @@ USERNAME=$PARAM_2
 	# Octroi de privilège administratifs
 	usermod -aG sudo $USERNAME
 	# Rendre utilisateur propritaire de répertoir /home/[username]/.ssh
-	#chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
+	if [ ! -d "/home/$USERNAME/.ssh" ]; then
+		mkdir -p "/home/$USERNAME/.ssh"
+	fi
+	chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
 
 	# Configuration du par-feu
 	echo ""
