@@ -53,7 +53,10 @@ sed \
 	-e "s/# letsencrypt['enable'] = nil/letsencrypt['enable'] = true/" \
 	-e "s/external_url 'http/external_url 'https/" \
 	< /etc/gitlab/gitlab.rb \
-	> /etc/gitlab/gitlab.rb
+	> /etc/gitlab/gitlab.rb_
+mv /etc/gitlab/gitlab.rb_ /etc/gitlab/gitlab.rb
+gitlab-ctl reconfigure
+
 
 echo ""
 echo "SUCCESS"
