@@ -45,12 +45,13 @@ apt-get install -y postfix
 
 ## Récuperer le package GitLab et l'installer
 curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | bash
-EXTERNAL_URL="https://$DOMAIN_NAME" apt-get install gitlab-ee
+EXTERNAL_URL="http://$DOMAIN_NAME" apt-get install gitlab-ee
 
 ## Configuration /etc/gitlab/gitlab.rb
 cp /etc/gitlab/gitlab.rb 	/etc/gitlab/gitlab.rb.s
 sed \
-	-e "s/# letsencrypte['enable'] = nil/letsencrypte['enable'] = true/" \
+	-e "s/# letsencrypt['enable'] = nil/letsencrypt['enable'] = true/" \
+	-e "s/external_url 'http/external_url 'https/" \
 	< /etc/gitlab/gitlab.rb \
 	> /etc/gitlab/gitlab.rb
 
