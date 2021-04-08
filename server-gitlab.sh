@@ -29,12 +29,12 @@ gl_assert_root(){
 ### POINT D'ENTRER DU SCRIPT ###
 
 ## Vérifier que le script est lancé en tant que root
-sw_assert_root
+gl_assert_root
 
 ## Instalation des dépendences
 DOMAIN_NAME="${1:-}"
 if [ -z "$DOMAIN_NAME" ]; then
-	sw_help
+	gl_help
 	1>&2 echo "ERREUR: Définisser un paramètre DOMAIN"
 	exit 1
 fi
@@ -46,6 +46,13 @@ apt-get install -y postfix
 ## Récuperer le package GitLab et l'installer
 curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | bash
 EXTERNAL_URL="https://$DOMAIN_NAME" apt-get install gitlab-ee
+
+## Configuration /etc/gitlab/gitlab.rb
+cp /etc/gitlab/gitlab.rb 	/etc/gitlab/gitlab.rb.s
+sed \
+	-e "s/# letsencrypte['enable'] = nil/letsencrypte['enable'] = true/" \
+	< /etc/gitlab/gitlab.rb \
+	> /etc/gitlab/gitlab.rb
 
 echo ""
 echo "SUCCESS"
